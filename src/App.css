@@ -1,0 +1,52 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  color: black;
+  margin-bottom: 6vh;
+  font-size: 6vh;
+}
+
+label {
+  display: flex;
+  color: black;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 2vh;
+  align-self: flex-start;
+  margin-bottom: 1vh;
+}
+
+.input-process {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 6vh;
+  background-color: transparent;
+  color: black;
+  border: 1px solid black;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  border-radius: 1vh;
+  color-scheme: light;
+}
+
+#outlined-number {
+  width: 100vh;
+  border-color: antiquewhite;
+  color-scheme: light;
+}
+
+.FormGroup {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 4vh;
+}
+
+.FormControlLabel {
+  width: calc(33.33% - 0.5rem); /* Cada checkbox ocupa 1/3 do espaço disponível com espaço entre eles */
+}
