@@ -38,6 +38,7 @@ function App() {
         }}
       />
         <FormGroup className='FormGroup'>
+          <h3>Selecione o algoritmo de escalonamento:</h3>
           <FormControlLabel 
             className = 'FormControlLabel' 
             control={<Checkbox 
@@ -84,6 +85,36 @@ function App() {
             label="Múltiplas Filas" 
           />
         </FormGroup>
+        <FormGroup className='FormGroup'>
+          <h3>Selecione o tipo de alocação de memória:</h3>
+          <FormControlLabel 
+            className = 'FormControlLabel' 
+            control={<Checkbox 
+            checked={selectedCheckbox === 'checkbox1'} 
+            onChange={handleCheckboxChange} 
+            name="checkbox1" 
+          />} 
+            label="Label1" 
+          />
+          <FormControlLabel 
+            className = 'FormControlLabel' 
+            control={<Checkbox 
+            checked={selectedCheckbox === 'checkbox2'} 
+            onChange={handleCheckboxChange} 
+            name="checkbox2" 
+          />} 
+            label="Label2" 
+          />
+          <FormControlLabel 
+            className = 'FormControlLabel' 
+            control={<Checkbox 
+            checked={selectedCheckbox === 'checkbox3'} 
+            onChange={handleCheckboxChange} 
+            name="checkbox3" 
+          />} 
+            label="Label3" 
+          />
+        </FormGroup>
         <Button
           variant="contained"
           color="primary"
@@ -99,6 +130,7 @@ function App() {
             },
           }}
         >
+          
           Executar Simulação
         </Button>
       </div>

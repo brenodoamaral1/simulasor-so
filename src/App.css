@@ -10,6 +10,12 @@ h1 {
   margin-bottom: 6vh;
   font-size: 6vh;
 }
+h3 {
+  color: black;
+  margin-bottom: 3vh;
+  font-size: 3vh;
+  align-self: flex-start;
+}
 
 label {
   display: flex;
