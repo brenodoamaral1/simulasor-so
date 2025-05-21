@@ -4,9 +4,16 @@ import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
-import { Processo, simularFIFO, ResultadoSimulacao } from './scripts/FIFO';
+import { Processo, ResultadoSimulacao } from './scripts/tipos';
+import { simularFIFO } from './scripts/FIFO';
+import { simularPrioridade } from './scripts/Prioridade';
+import { simularSJF } from './scripts/SJF';
+import { simularRoundRobin } from './scripts/RR';
+import { simularSRT } from './scripts/SRT';
+import { simularLJF } from './scripts/LJF';
 import { gerarProcessosAleatorios } from './scripts/generator';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LabelList } from 'recharts';
+
 
 function App() {
   const [algoritmoSelecionado, setAlgoritmoSelecionado] = useState<string | null>('checkbox1');
@@ -25,9 +32,25 @@ function App() {
 
     let resultado: ResultadoSimulacao[] = [];
 
-    if (algoritmoSelecionado === 'checkbox1') {
-      resultado = simularFIFO(processos);
-    }
+  if (algoritmoSelecionado === 'checkbox1') {
+    resultado = simularFIFO(processos);   
+  } 
+  else if (algoritmoSelecionado === 'checkbox2') {
+    resultado = simularSJF(processos);
+  }
+  else if (algoritmoSelecionado === 'checkbox3') {
+    resultado = simularSRT(processos);
+  }
+  else if (algoritmoSelecionado === 'checkbox4') {
+    const quantum = 2;
+    resultado = simularRoundRobin(processos, quantum);
+  }
+  else if (algoritmoSelecionado === 'checkbox5') {
+    resultado = simularLJF(processos);
+  }
+  else if (algoritmoSelecionado === 'checkbox6') {
+    resultado = simularPrioridade(processos);
+  }
 
     setResultados(resultado);
   };
@@ -70,7 +93,7 @@ function App() {
               />
               <FormControlLabel
                 control={<Checkbox checked={algoritmoSelecionado === 'checkbox5'} onChange={aoAlterarCheckbox} name="checkbox5" />}
-                label="Multiplas Filas"
+                label="LJF"
               />
               <FormControlLabel
                 control={<Checkbox checked={algoritmoSelecionado === 'checkbox6'} onChange={aoAlterarCheckbox} name="checkbox6" />}

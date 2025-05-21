@@ -1,18 +1,6 @@
-export interface Processo {
-    id: string;
-    tempoChegada: number;
-    duracao: number;
-  }
-  
-  export interface ResultadoSimulacao {
-    id: string;
-    inicio: number;
-    fim: number;
-    tempoEspera: number;
-    tempoRetorno: number;
-  }
-  
-  export function simularFIFO(processos: Processo[]): ResultadoSimulacao[] {
+import { Processo, ResultadoSimulacao } from './tipos';
+
+export function simularFIFO(processos: Processo[]): ResultadoSimulacao[] {
     let tempoAtual = 0;
     const resultado: ResultadoSimulacao[] = [];
   

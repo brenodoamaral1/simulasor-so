@@ -1,4 +1,4 @@
-import { Processo } from './FIFO';
+import { Processo } from './tipos';
 
 export function gerarProcessosAleatorios(quantidade: number): Processo[] {
   return Array.from({ length: quantidade }, (_, i) => ({
