@@ -22,6 +22,7 @@ import {
   LabelList,
   Cell,
 } from 'recharts';
+import Logo from './public/LogoEscalonamento.png';
 
 function App() {
   const [algoritmoSelecionado, setAlgoritmoSelecionado] = useState<string | null>('checkbox1');
@@ -73,7 +74,7 @@ function App() {
   return (
     <div className="container">
 
-      <img src="/src/public/LogoEscalonamento.png" alt="Logo" className="logo" />
+      <img src={Logo} />
       <h1>Simulação de Escalonamento</h1>
 
       <div className="simulator-grid">
