@@ -11,4 +11,6 @@ export interface ResultadoSimulacao {
   fim: number;
   tempoEspera: number;
   tempoRetorno: number;
+  prioridade?: number; // adicionado
 }
+

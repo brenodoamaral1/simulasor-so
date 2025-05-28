@@ -1,60 +1,89 @@
 import { Processo, ResultadoSimulacao } from './tipos';
 
+export interface BlocoExecucao {
+  id: string;
+  inicio: number;
+  fim: number;
+}
 
-export function simularSRT(processos: Processo[]): ResultadoSimulacao[] {
-  // Clonar os processos e adicionar tempo restante
-  const processosRestantes = processos.map(p => ({
-    ...p,
-    tempoRestante: p.duracao,
-    inicioExecucao: -1,
-  }));
-
+export function simularSRT(processos: Processo[]): {
+  resultado: ResultadoSimulacao[];
+  blocos: BlocoExecucao[];
+} {
+  const tempoRestante = new Map<string, number>();
   const resultadoMap = new Map<string, ResultadoSimulacao>();
+  const blocos: BlocoExecucao[] = [];
 
+  const fila = [...processos];
   let tempoAtual = 0;
-  let processoAtual: typeof processosRestantes[0] | null = null;
+  let emExecucao: Processo | null = null;
+  let tempoExecucaoAtual = 0;
 
-  while (processosRestantes.some(p => p.tempoRestante > 0)) {
-    // Filtra os processos que chegaram até o tempo atual e ainda não terminaram
-    const prontos = processosRestantes.filter(
-      p => p.tempoChegada <= tempoAtual && p.tempoRestante > 0
-    );
+  const finalizados = new Set<string>();
 
-    if (prontos.length > 0) {
-      // Escolhe o processo com menor tempo restante
-      const menor = prontos.reduce((a, b) =>
-        a.tempoRestante < b.tempoRestante ? a : b
-      );
+  while (finalizados.size < processos.length) {
+    const disponiveis = fila
+      .filter(p => p.tempoChegada <= tempoAtual && !finalizados.has(p.id))
+      .sort((a, b) => {
+        const restanteA = tempoRestante.get(a.id) ?? a.duracao;
+        const restanteB = tempoRestante.get(b.id) ?? b.duracao;
+        return restanteA - restanteB;
+      });
 
-      if (processoAtual !== menor) {
-        processoAtual = menor;
+    const proximo = disponiveis[0] ?? null;
 
-        if (processoAtual.inicioExecucao === -1) {
-          processoAtual.inicioExecucao = tempoAtual;
-        }
+    // Se houver preempção
+    if (proximo && (!emExecucao || proximo.id !== emExecucao.id)) {
+      if (emExecucao) {
+        blocos.push({
+          id: emExecucao.id,
+          inicio: tempoAtual - tempoExecucaoAtual,
+          fim: tempoAtual,
+        });
       }
 
-      // Executa o processo por 1 unidade de tempo
-      processoAtual.tempoRestante--;
+      emExecucao = proximo;
+      tempoExecucaoAtual = 0;
 
-      // Se terminou, registra o resultado
-      if (processoAtual.tempoRestante === 0) {
-        const tempoFim = tempoAtual + 1;
-        resultadoMap.set(processoAtual.id, {
-          id: processoAtual.id,
-          inicio: processoAtual.inicioExecucao,
-          fim: tempoFim,
-          tempoEspera:
-            tempoFim -
-            processoAtual.tempoChegada -
-            processoAtual.duracao,
-          tempoRetorno: tempoFim - processoAtual.tempoChegada,
+      if (!resultadoMap.has(emExecucao.id)) {
+        resultadoMap.set(emExecucao.id, {
+          id: emExecucao.id,
+          inicio: tempoAtual,
+          fim: 0,
+          tempoEspera: 0,
+          tempoRetorno: 0,
         });
       }
     }
 
+    if (!emExecucao) {
+      tempoAtual++;
+      continue;
+    }
+
+    const restante = tempoRestante.get(emExecucao.id) ?? emExecucao.duracao;
+    tempoRestante.set(emExecucao.id, restante - 1);
     tempoAtual++;
+    tempoExecucaoAtual++;
+
+    if (restante - 1 === 0) {
+      blocos.push({
+        id: emExecucao.id,
+        inicio: tempoAtual - tempoExecucaoAtual,
+        fim: tempoAtual,
+      });
+
+      const resultado = resultadoMap.get(emExecucao.id)!;
+      resultado.fim = tempoAtual;
+      resultado.tempoRetorno = resultado.fim - emExecucao.tempoChegada;
+      resultado.tempoEspera = resultado.tempoRetorno - emExecucao.duracao;
+      finalizados.add(emExecucao.id);
+      emExecucao = null;
+    }
   }
 
-  return processos.map(p => resultadoMap.get(p.id)!);
+  return {
+    resultado: [...resultadoMap.values()],
+    blocos,
+  };
 }

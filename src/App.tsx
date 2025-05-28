@@ -8,22 +8,36 @@ import { Processo, ResultadoSimulacao } from './scripts/tipos';
 import { simularFIFO } from './scripts/FIFO';
 import { simularPrioridade } from './scripts/Prioridade';
 import { simularSJF } from './scripts/SJF';
-import { simularRoundRobin } from './scripts/RR';
-import { simularSRT } from './scripts/SRT';
+import { simularRoundRobin, BlocoExecucao as BlocoRR } from './scripts/RR';
+import { simularSRT, BlocoExecucao as BlocoSRT } from './scripts/SRT';
 import { simularLJF } from './scripts/LJF';
 import { gerarProcessosAleatorios } from './scripts/generator';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LabelList } from 'recharts';
-
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  LabelList,
+  Cell,
+} from 'recharts';
 
 function App() {
   const [algoritmoSelecionado, setAlgoritmoSelecionado] = useState<string | null>('checkbox1');
   const [resultados, setResultados] = useState<ResultadoSimulacao[]>([]);
+  const [blocosRR, setBlocosRR] = useState<BlocoRR[]>([]);
+  const [blocosSRT, setBlocosSRT] = useState<BlocoSRT[]>([]);
   const [quantidadeProcessos, setQuantidadeProcessos] = useState<number>(4);
   const [processosGerados, setProcessosGerados] = useState<Processo[]>([]);
 
   const aoAlterarCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
     const valor = event.target.name;
-    setAlgoritmoSelecionado(algoritmoSelecionado === valor ? null : valor);
+    const novoSelecionado = algoritmoSelecionado === valor ? null : valor;
+    setAlgoritmoSelecionado(novoSelecionado);
+    setResultados([]);
+    setBlocosRR([]);
+    setBlocosSRT([]);
   };
 
   const executarSimulacao = () => {
@@ -31,26 +45,27 @@ function App() {
     setProcessosGerados(processos);
 
     let resultado: ResultadoSimulacao[] = [];
+    setBlocosRR([]);
+    setBlocosSRT([]);
 
-  if (algoritmoSelecionado === 'checkbox1') {
-    resultado = simularFIFO(processos);   
-  } 
-  else if (algoritmoSelecionado === 'checkbox2') {
-    resultado = simularSJF(processos);
-  }
-  else if (algoritmoSelecionado === 'checkbox3') {
-    resultado = simularSRT(processos);
-  }
-  else if (algoritmoSelecionado === 'checkbox4') {
-    const quantum = 2;
-    resultado = simularRoundRobin(processos, quantum);
-  }
-  else if (algoritmoSelecionado === 'checkbox5') {
-    resultado = simularLJF(processos);
-  }
-  else if (algoritmoSelecionado === 'checkbox6') {
-    resultado = simularPrioridade(processos);
-  }
+    if (algoritmoSelecionado === 'checkbox1') {
+      resultado = simularFIFO(processos);
+    } else if (algoritmoSelecionado === 'checkbox2') {
+      resultado = simularSJF(processos);
+    } else if (algoritmoSelecionado === 'checkbox3') {
+      const { resultado: srtResultado, blocos } = simularSRT(processos);
+      setBlocosSRT(blocos);
+      resultado = srtResultado;
+    } else if (algoritmoSelecionado === 'checkbox4') {
+      const quantum = 2;
+      const { resultado: rrResultado, blocos } = simularRoundRobin(processos, quantum);
+      setBlocosRR(blocos);
+      resultado = rrResultado;
+    } else if (algoritmoSelecionado === 'checkbox5') {
+      resultado = simularLJF(processos);
+    } else if (algoritmoSelecionado === 'checkbox6') {
+      resultado = simularPrioridade(processos);
+    }
 
     setResultados(resultado);
   };
@@ -81,7 +96,7 @@ function App() {
                 control={<Checkbox checked={algoritmoSelecionado === 'checkbox2'} onChange={aoAlterarCheckbox} name="checkbox2" />}
                 label="SJF"
               />
-               <FormControlLabel
+              <FormControlLabel
                 control={<Checkbox checked={algoritmoSelecionado === 'checkbox3'} onChange={aoAlterarCheckbox} name="checkbox3" />}
                 label="SRT"
               />
@@ -122,31 +137,101 @@ function App() {
                   .map((p) => (
                     <li key={p.id}>
                       <strong>{p.id}</strong> — chegada: <strong>{p.tempoChegada}</strong>, duração: <strong>{p.duracao}</strong>
+                      {p.prioridade !== undefined && (
+                        <> — prioridade: <strong>{p.prioridade}</strong></>
+                      )}
                     </li>
                   ))}
               </ul>
             </div>
           )}
 
-          {resultados.length > 0 ? (
+          {algoritmoSelecionado === 'checkbox4' ? (
+            blocosRR.length > 0 ? (
+              <BarChart width={700} height={300} data={blocosRR}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="id" />
+                <YAxis />
+                <Tooltip
+                  formatter={(_, __, { payload }) => [`Início: ${payload.inicio}, Fim: ${payload.fim}`, 'Execução']}
+                />
+                <Bar dataKey={(data) => data.fim - data.inicio} name="Execução" fill="#ff884d">
+                  <LabelList dataKey="inicio" position="insideTop" style={{ fill: 'white', fontWeight: 'bold' }} />
+                </Bar>
+              </BarChart>
+            ) : (
+              <p style={{ color: '#999', fontStyle: 'italic' }}>Gráfico será exibido após a simulação RR.</p>
+            )
+          ) : algoritmoSelecionado === 'checkbox3' ? (
+            blocosSRT.length > 0 ? (
+              <BarChart width={700} height={300} data={blocosSRT}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="id" />
+                <YAxis />
+                <Tooltip
+                  formatter={(_, __, { payload }) => [`Início: ${payload.inicio}, Fim: ${payload.fim}`, 'Execução']}
+                />
+                <Bar dataKey={(data) => data.fim - data.inicio} name="Execução" fill="#82ca9d">
+                  <LabelList dataKey="inicio" position="insideTop" style={{ fill: 'white', fontWeight: 'bold' }} />
+                </Bar>
+              </BarChart>
+            ) : (
+              <p style={{ color: '#999', fontStyle: 'italic' }}>Gráfico será exibido após a simulação SRT.</p>
+            )
+          ) : algoritmoSelecionado === 'checkbox6' ? (
+            resultados.length > 0 ? (
+              <BarChart width={700} height={300} data={resultados}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="id" />
+                <YAxis />
+                <Tooltip
+                  formatter={(_, __, { payload }) => [
+                    `Início: ${payload.inicio}, Fim: ${payload.fim}, Espera: ${payload.tempoEspera}, Retorno: ${payload.tempoRetorno}, Prioridade: ${payload.prioridade ?? '—'}`,
+                    'Detalhes',
+                  ]}
+                />
+                <Bar dataKey={(data) => data.fim - data.inicio} name="Execução">
+                  {resultados.map((index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        '#69c0ff'
+                      }
+                    />
+                  ))}
+                  <LabelList
+                    dataKey="prioridade"
+                    position="insideTop"
+                    formatter={(value: number) => `Pr. ${value}`}
+                    style={{ fill: 'white', fontWeight: 'bold' }}
+                  />
+                </Bar>
+              </BarChart>
+            ) : (
+              <p style={{ color: '#999', fontStyle: 'italic' }}>Gráfico será exibido após a simulação de Prioridade.</p>
+            )
+          ) : resultados.length > 0 ? (
             <BarChart width={700} height={300} data={resultados}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="id" />
               <YAxis />
-              <Tooltip />
+              <Tooltip
+                formatter={(_, __, { payload }) => [
+                  `Início: ${payload.inicio}, Fim: ${payload.fim}, Espera: ${payload.tempoEspera}, Retorno: ${payload.tempoRetorno}`,
+                  'Detalhes',
+                ]}
+              />
               <Bar
                 dataKey={(data) => data.fim - data.inicio}
                 name="Duração"
-                fill="#7e30c2"
-                isAnimationActive={true}
-                animationBegin={200}
-                animationDuration={1000}
+                fill={
+                  algoritmoSelecionado === 'checkbox1' ? '#7e30c2' :
+                  algoritmoSelecionado === 'checkbox2' ? '#ffc658' :
+                  algoritmoSelecionado === 'checkbox5' ? '#ffa940' :
+                  '#8884d8'
+                }
               >
-                <LabelList
-                  dataKey="inicio"
-                  position="insideTop"
-                  style={{ fill: 'white', fontWeight: 'bold' }}
-                />
+                <LabelList dataKey="inicio" position="insideTop" style={{ fill: 'white', fontWeight: 'bold' }} />
               </Bar>
             </BarChart>
           ) : (

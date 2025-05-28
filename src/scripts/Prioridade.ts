@@ -4,7 +4,6 @@ export function simularPrioridade(processos: Processo[]): ResultadoSimulacao[] {
   let tempoAtual = 0;
   const resultado: ResultadoSimulacao[] = [];
 
-  // Ordena por prioridade e, em caso de empate, por tempo de chegada
   const filaOrdenada = [...processos].sort((a, b) => {
     if ((a.prioridade ?? 0) === (b.prioridade ?? 0)) {
       return a.tempoChegada - b.tempoChegada;
@@ -22,6 +21,7 @@ export function simularPrioridade(processos: Processo[]): ResultadoSimulacao[] {
       fim,
       tempoEspera: inicio - processo.tempoChegada,
       tempoRetorno: fim - processo.tempoChegada,
+      prioridade: processo.prioridade, // aqui
     });
 
     tempoAtual = fim;
