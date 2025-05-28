@@ -72,6 +72,8 @@ function App() {
 
   return (
     <div className="container">
+
+      <img src="/src/assets/LogoEscalonamento.png" alt="Logo" className="logo" />
       <h1>Simulação de Escalonamento</h1>
 
       <div className="simulator-grid">
